@@ -20,7 +20,7 @@ A modern web application showcasing various UI patterns and components built wit
 ### Prerequisites
 
 - A modern web browser (Chrome, Firefox, Safari, Edge)
-- (Optional) A local web server (like Live Server in VS Code)
+- (Recommended) A local web server (like Live Server in VS Code or Python's built-in server)
 
 ### Installation
 
@@ -30,7 +30,23 @@ A modern web application showcasing various UI patterns and components built wit
    cd patterns
    ```
 
-2. Open `index.html` in your preferred web browser
+2. Run a local server (choose one method):
+
+   **Option 1: Using VS Code (Recommended)**
+   - Install the "Live Server" extension
+   - Right-click on `index.html` and select "Open with Live Server"
+
+   **Option 2: Using Python**
+   ```bash
+   # Python 3.x
+   python -m http.server 8000
+   # or
+   python3 -m http.server 8000
+   ```
+   Then open `http://localhost:8000` in your browser
+
+   **Option 3: Direct file access**
+   - Simply open `index.html` in your browser (note: some features might be limited due to CORS restrictions)
 
 ## 📁 Project Structure
 
