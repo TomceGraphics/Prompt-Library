@@ -26,8 +26,8 @@ A modern web application showcasing various UI patterns and components built wit
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/TomceGraphics/patterns.git
-   cd patterns
+   git clone https://github.com/TomceGraphics/Prompt-Library.git
+   cd Prompt-Library
    ```
 
 2. Run a local server (choose one method):
@@ -51,7 +51,7 @@ A modern web application showcasing various UI patterns and components built wit
 ## 📁 Project Structure
 
 ```
-patterns/
+Prompt-Library/
 ├── index.html      # Main HTML file
 ├── style.css      # Main stylesheet
 └── main.js        # JavaScript functionality
