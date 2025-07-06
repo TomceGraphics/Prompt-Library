@@ -1,0 +1,17 @@
+# Ignore design inspiration folder
+design inspo/
+
+# Common development files
+.DS_Store
+node_modules/
+.env
+*.log
+
+# Editor directories and files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

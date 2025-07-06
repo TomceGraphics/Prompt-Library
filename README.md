@@ -11,9 +11,9 @@ A modern web application showcasing various UI patterns and components built wit
 
 ## 🛠️ Technologies Used
 
-- HTML5
-- CSS3 (with modern features like Flexbox and Grid)
-- Vanilla JavaScript
+- HTML
+- CSS
+- JavaScript
 
 ## 🏃‍♂️ Getting Started
 
@@ -26,7 +26,7 @@ A modern web application showcasing various UI patterns and components built wit
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/patterns.git
+   git clone https://github.com/TomceGraphics/patterns.git
    cd patterns
    ```
 
@@ -57,4 +57,4 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ---
 
-Made with ❤️ by [Your Name]
+Made with ❤️ by Thomas Graphics
