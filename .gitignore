@@ -1,5 +1,5 @@
-# Ignore design inspiration folder
-design inspo/
+# Ignore design reference folder
+design_reference/
 
 # Common development files
 .DS_Store
@@ -15,3 +15,11 @@ node_modules/
 *.njsproj
 *.sln
 *.sw?
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
