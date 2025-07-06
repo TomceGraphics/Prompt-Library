@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pattern Library</title>
+  <script>
+    // Immediately set the theme to prevent flash of light mode
+    (function() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      
+      // Apply theme immediately
+      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add('dark-theme');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="style.css" />
+  <!-- FontAwesome Kit -->
+  <script src="https://kit.fontawesome.com/1a840df220.js" crossorigin="anonymous"></script>
+  <!-- Inter font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="app-header">
+    <!-- Top section: search + theme toggle -->
+    <div class="top-header">
+      <div class="search-container">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="search"
+          id="searchInput"
+          class="search-input"
+          placeholder="Search patterns..."
+          aria-label="Search patterns"
+        />
+      </div>
+      <div class="header-actions">
+        <button id="themeToggleBtn" class="btn icon-button" aria-label="Toggle light/dark theme">
+          <i class="fas fa-moon"></i>
+        </button>
+      </div>
+    </div>
+  
+    <!-- Divider -->
+    <div class="divider"></div>
+  
+    <!-- Bottom section: tag UI + view toggle -->
+    <div class="bottom-header">
+      <div class="filters-section">
+        <button id="tagFilterBtn" class="btn btn-primary" aria-label="Filter by tags" aria-expanded="false">
+          <i class="fa-solid fa-filter"></i>
+          <span>Filters</span>
+        </button>
+  
+        <!-- Selected tags will appear here -->
+        <div class="selected-tags-container"></div>
+  
+        <!-- Tag search popup -->
+        <div id="tagSearchPopup" class="tag-search-popup hidden" role="listbox" aria-label="Tag search and select">
+          <input
+            type="search"
+            id="popupTagSearch"
+            placeholder="Search tags..."
+            aria-label="Search tags"
+            autocomplete="off"
+          />
+          <ul id="popupTagList" class="tag-list"></ul>
+        </div>
+      </div>
+  
+      <div class="view-toggle" role="group" aria-label="View toggle">
+        <button type="button" class="view-option grid-view-option" data-view="grid" aria-pressed="true" aria-label="Grid view">
+          <i class="fa-solid fa-border-all"></i>
+        </button>
+        <button type="button" class="view-option list-view-option" data-view="list" aria-pressed="false" aria-label="List view">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+  <main class="app-container">
+
+    <section id="cardsContainer" class="cards-container" aria-live="polite" aria-label="Pattern cards">
+      <!-- Card content will be generated here -->
+    </section>
+  </main>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
