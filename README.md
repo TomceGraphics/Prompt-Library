@@ -63,6 +63,36 @@ Prompt-Library/
 - Update `main.js` to add or modify functionality
 - Edit `index.html` to change the structure
 
+## Adding New Patterns
+
+Currently, patterns are added via a manual process (a UI for this is planned):
+
+1. **Create a folder** with the pattern name in the patterns directory
+2. Add a `system.md` file inside containing the pattern's content
+3. Create a `description.json` file with:
+   ```json
+   {
+     "description": "Your pattern description",
+     "tags": ["tag1", "tag2"]
+   }
+   ```
+4. Run the Python script to generate the final JSON structure
+
+Use the `create_pattern` custom pattern to automate some of these steps.
+
+## Planned Features
+
+### High Priority
+- [ ] Database migration (replace JSON files)
+- [ ] Side panel with categories and favorites
+- [ ] UI for pattern creation/editing  
+- [ ] In-app pattern management (edit descriptions, tags, etc.)
+
+### Future Considerations  
+- [ ] User accounts system
+- [ ] Version history for patterns
+- [ ] Advanced sorting and filtering
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
