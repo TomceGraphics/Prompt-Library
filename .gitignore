@@ -1,5 +1,6 @@
 # Ignore design reference folder
 design_reference/
+old/
 
 # Common development files
 .DS_Store
