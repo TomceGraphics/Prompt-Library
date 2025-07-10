@@ -1,5 +1,5 @@
-# Ignore design reference folder
-design_reference/
+# Ignore screenshots directory
+Screen-shoots/
 
 # Common development files
 .DS_Store
