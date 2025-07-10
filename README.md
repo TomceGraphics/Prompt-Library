@@ -9,18 +9,18 @@ A modern web application showcasing various UI patterns and components built wit
 - Clean and modern patterns
 - Easy to customize
 
-## � Screenshots
+## 📸 Screenshots
 
 ### List View
-![List View](Screen-shoots/1.png)
+![List View](screen-shoots/1.png)
 
 ### Grid View
-![Grid View](Screen-shoots/2.png)
+![Grid View](screen-shoots/2.png)
 
 ### Tag Filtering
-![Tag Filtering](Screen-shoots/3.png)
+![Tag Filtering](screen-shoots/3.png)
 
-## �🛠️ Technologies Used
+## 🛠️ Technologies Used
 
 - HTML
 - CSS
