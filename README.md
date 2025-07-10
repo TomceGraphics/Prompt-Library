@@ -1,6 +1,7 @@
 # Patterns Project
 
-A modern web application showcasing various UI patterns and components built with HTML, CSS, and JavaScript.
+![logo](screen-shoots/LOGO.png)
+A modern web application for storing and viewing AI prompts.
 
 ## 🚀 Features
 
