@@ -2,8 +2,21 @@
 
 <div align="center">
 <img src="assets/images/icon.png" alt="logo" style="width:400px; height:auto; margin-left: auto; margin-right: auto;">
+
+# Prompt Library
+
+![Static Badge](https://img.shields.io/badge/mission-articulate%20deep%20context%20about%20things%20that%20matter%20to%20humans-brightgreen)
+<br />
+![GitHub top language](https://img.shields.io/github/languages/top/danielmiessler/Telos)
+![GitHub last commit](https://img.shields.io/github/last-commit/danielmiessler/Telos)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+<p class="align center">
+<h4><code>Prompt Library</code> An open-sourced modern web application for storing and viewing AI prompts.</h4>
+</p>
 </div>
-A modern web application for storing and viewing AI prompts.
+</div>
+
 
 ## 🚀 Features
 
