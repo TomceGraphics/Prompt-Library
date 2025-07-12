@@ -1,6 +1,8 @@
 # Patterns Project
 
-<img src="assets/images/icon.png" alt="logo" style="width:400px; height:auto;">
+<div style="display: flex; justify-content: center;">
+<img src="assets/images/icon.png" alt="logo" style="width:400px; height:auto; margin-left: auto; margin-right: auto;">
+</div>
 A modern web application for storing and viewing AI prompts.
 
 ## 🚀 Features
