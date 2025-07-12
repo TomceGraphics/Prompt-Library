@@ -1,6 +1,6 @@
 # Patterns Project
 
-![logo](assets/images/LOGO.png)
+![logo](assets/images/icon.png)
 A modern web application for storing and viewing AI prompts.
 
 ## 🚀 Features
