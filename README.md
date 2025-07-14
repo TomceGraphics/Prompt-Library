@@ -34,7 +34,7 @@
 ![Grid View](screen-shoots/2.png)
 
 ### Tag Filtering
-![Tag Filtering](screen-shoots/mockup02.png)
+![Tag Filtering](screen-shoots/mockup03.png)
 
 ## 🛠️ Technologies Used
 
