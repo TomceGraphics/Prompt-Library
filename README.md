@@ -28,13 +28,13 @@
 ## 📸 Screenshots
 
 ### List View
-![List View](screen-shoots/1.png)
+![List View](screen-shoots/Mochup1.png)
 
 ### Grid View
 ![Grid View](screen-shoots/2.png)
 
 ### Tag Filtering
-![Tag Filtering](screen-shoots/3.png)
+![Tag Filtering](screen-shoots/Mockup5.png)
 
 ## 🛠️ Technologies Used
 
