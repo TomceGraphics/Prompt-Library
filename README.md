@@ -31,10 +31,10 @@
 ![List View](screen-shoots/mockup01.png)
 
 ### Grid View
-![Grid View](screen-shoots/2.png)
+![Grid View](screen-shoots/mockup03.png)
 
 ### Tag Filtering
-![Tag Filtering](screen-shoots/mockup03.png)
+![Tag Filtering](screen-shoots/mockup04.png)
 
 ## 🛠️ Technologies Used
 
