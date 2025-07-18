@@ -5,7 +5,7 @@
 
 # Prompt Library
 
-![Static Badge](https://img.shields.io/badge/mission-articulate%20deep%20context%20about%20things%20that%20matter%20to%20humans-brightgreen)
+![Static Badge](https://img.shields.io/badge/mission-Effortlessly%20browse%2C%20store%2C%20and%20manage%20your%20AI%20prompts-blue)
 <br />
 ![GitHub top language](https://img.shields.io/github/languages/top/danielmiessler/Telos)
 ![GitHub last commit](https://img.shields.io/github/last-commit/danielmiessler/Telos)
@@ -28,13 +28,13 @@
 ## 📸 Screenshots
 
 ### List View
-![List View](screen-shoots/mockup01.png)
+![List View](screen-shoots/mockup_list_view.png)
 
 ### Grid View
-![Grid View](screen-shoots/mockup03.png)
+![Grid View](screen-shoots/mockup_grid_view.png)
 
 ### Tag Filtering
-![Tag Filtering](screen-shoots/mockup04.png)
+![Tag Filtering](screen-shoots/mockup_tag_filtering.png)
 
 ## 🛠️ Technologies Used
 
