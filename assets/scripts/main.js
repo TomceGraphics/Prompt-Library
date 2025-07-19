@@ -558,6 +558,68 @@ function setupEventListeners() {
       return;
     }
   });
+
+  // Keyboard navigation for the app
+  document.addEventListener('keydown', (e) => {
+    // Close popup with Escape
+    if (e.key === 'Escape' && !tagSearchPopup.classList.contains('hidden')) {
+      tagSearchPopup.classList.add('hidden');
+      tagFilterBtn.setAttribute('aria-expanded', 'false');
+      return;
+    }
+
+    // Focus search with Ctrl+K or Cmd+K
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+      e.preventDefault();
+      searchInput.focus();
+    }
+  });
+
+  // Card interactions
+  cardsContainer.addEventListener('click', (e) => {
+    // Handle expand/collapse of pattern content
+    const expandBtn = e.target.closest('.expand-btn');
+    if (expandBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      const card = expandBtn.closest('.card');
+      const patternContent = card.querySelector('.card-pattern');
+      const isExpanded = expandBtn.getAttribute('aria-expanded') === 'true';
+      
+      // Toggle the expanded state
+      const newExpandedState = !isExpanded;
+      expandBtn.setAttribute('aria-expanded', newExpandedState);
+      
+      // Toggle the content
+      if (patternContent) {
+        if (newExpandedState) {
+          patternContent.style.display = 'block';
+          patternContent.style.maxHeight = patternContent.scrollHeight + 'px';
+        } else {
+          patternContent.style.maxHeight = '0';
+          // Wait for the transition to complete before hiding
+          setTimeout(() => {
+            if (expandBtn.getAttribute('aria-expanded') === 'false') {
+              patternContent.style.display = 'none';
+            }
+          }, 300);
+        }
+      }
+      
+      // Toggle the chevron icon
+      const icon = expandBtn.querySelector('i');
+      if (icon) {
+        icon.style.transform = newExpandedState ? 'rotate(180deg)' : 'rotate(0deg)';
+      }
+      
+      // Update button text
+      const textSpan = expandBtn.querySelector('span');
+      if (textSpan) {
+        textSpan.textContent = newExpandedState ? 'Hide Pattern' : 'Show Pattern';
+      }
+    }
+  });
 }
 
 // Debounce function to limit the rate of function calls
