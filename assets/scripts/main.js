@@ -68,10 +68,10 @@ function renderPatterns() {
   cardsContainer.className = `cards-container ${isGridView ? 'grid-view' : 'list-view'}`;
   
   cardsContainer.innerHTML = filteredPatterns.map((pattern, index) => `
-    <article class="card" data-pattern-name="${escapeHtml(pattern.patternName)}">
+    <article class="card" data-pattern-name="${escapeHtml(pattern.id)}">
       <div class="card-header">
         <div class="card-title-row">
-          <h2 class="card-title">${escapeHtml(pattern.patternName)}</h2>
+          <h2 class="card-title">${escapeHtml(pattern.id)}</h2>
           <div class="card-actions">
             <button class="favorite-btn icon-button" data-favorite="${pattern.isFavorite}" aria-label="${pattern.isFavorite ? 'Remove from' : 'Add to'} favorites">
               <i class="${pattern.isFavorite ? 'fas' : 'far'} fa-star"></i>
@@ -98,7 +98,7 @@ function renderPatterns() {
           <span>Show Pattern</span>
         </button>
       </div>
-      ${pattern.pattern_extract ? `
+      ${pattern.system ? `
         <div id="pattern-${index}" class="card-pattern" style="display: none;">
           <div class="pattern-header">
             <button class="pattern-copy-btn" aria-label="Copy pattern">
@@ -107,7 +107,7 @@ function renderPatterns() {
             </button>
           </div>
           <div class="pattern-content">
-            <pre><code>${escapeHtml(pattern.pattern_extract)}</code></pre>
+            <pre><code>${escapeHtml(pattern.system)}</code></pre>
           </div>
         </div>
       ` : ''}
@@ -197,11 +197,11 @@ function renderPatterns() {
       
       const card = btn.closest('.card');
       const patternName = card?.dataset.patternName;
-      const pattern = patterns.find(p => p.patternName === patternName);
+      const pattern = patterns.find(p => p.id === patternName);
       
-      if (pattern?.pattern_extract) {
+      if (pattern?.system) {
         try {
-          await copyToClipboard(pattern.pattern_extract);
+          await copyToClipboard(pattern.system);
           
           // Update button state
           btn.innerHTML = '<i class="fas fa-check"></i>';
@@ -451,8 +451,8 @@ function loadPatterns() {
     try {
       const favoriteStates = JSON.parse(savedPatterns);
       patterns.forEach(pattern => {
-        if (favoriteStates[pattern.patternName] !== undefined) {
-          pattern.isFavorite = favoriteStates[pattern.patternName];
+        if (favoriteStates[pattern.id] !== undefined) {
+          pattern.isFavorite = favoriteStates[pattern.id];
         }
       });
     } catch (e) {
@@ -467,13 +467,14 @@ function savePatterns() {
   try {
     const favoriteStates = {};
     patterns.forEach(pattern => {
-      favoriteStates[pattern.patternName] = pattern.isFavorite || false;
+      favoriteStates[pattern.id] = pattern.isFavorite || false;
     });
     localStorage.setItem('favoritePatterns', JSON.stringify(favoriteStates));
   } catch (e) {
     console.error('Failed to save favorite patterns:', e);
   }
 }
+
 
 // Set up event listeners
 function setupEventListeners() {
