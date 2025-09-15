@@ -1,578 +1,396 @@
-import { loadAndMergePatterns } from './json.js';
+// Sample data (replace with your actual prompt.json)
+
+// Load prompts data
+let promptData = { patterns: [] };
+
+// Function to load prompts from JSON file
+async function loadPromptsData() {
+    try {
+        const response = await fetch('../prompts.json');
+        if (!response.ok) {
+            throw new Error('Failed to load prompts data');
+        }
+        const data = await response.json();
+        promptData = data;
+        return data;
+    } catch (error) {
+        console.error('Error loading prompts:', error);
+        return { patterns: [] };
+    }
+}
 
 // DOM Elements
-const searchInput = document.getElementById('searchInput');
-const themeToggleBtn = document.getElementById('themeToggleBtn');
-const tagFilterBtn = document.getElementById('tagFilterBtn');
-const viewToggleBtn = document.getElementById('viewToggleBtn');
-const cardsContainer = document.getElementById('cardsContainer');
-const tagSearchPopup = document.getElementById('tagSearchPopup');
-const popupTagSearch = document.getElementById('popupTagSearch');
-const popupTagList = document.getElementById('popupTagList');
-const selectedTagsContainer = document.querySelector('.selected-tags-container');
+const themeToggle = document.getElementById('theme-toggle');
+const sidebarToggle = document.getElementById('sidebar-toggle');
+const sidebar = document.getElementById('sidebar');
+const filterToggle = document.getElementById('filter-toggle');
+const filterDropdown = document.getElementById('filter-dropdown');
+const tagSearch = document.getElementById('tag-search');
+const tagsContainer = document.getElementById('tags-container');
+const searchInput = document.getElementById('search-input');
+const cardViewBtn = document.getElementById('card-view');
+const gridViewBtn = document.getElementById('grid-view');
+const promptsContainer = document.getElementById('prompts-container');
+const promptModal = document.getElementById('prompt-modal');
+const closeModal = document.getElementById('close-modal');
+const modalTitle = document.getElementById('modal-title');
+const modalTags = document.getElementById('modal-tags');
+const modalDescription = document.getElementById('modal-description');
+const modalPrompt = document.getElementById('modal-prompt');
+const modalFavorite = document.getElementById('modal-favorite');
+const modalCopy = document.getElementById('modal-copy');
+const copyNotification = document.getElementById('copy-notification');
+const tabLinks = document.querySelectorAll('.tab-link');
 
 // State
-let patterns = [];
-let filteredPatterns = [];
-let allTags = new Set();
-let selectedTags = new Set();
-let isGridView = true;
+let currentView = 'card';
+let currentPromptId = null;
+let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
+let selectedTags = [];
+let allTags = [];
+let currentTab = 'explore';
+let sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
 
-// Initialize the application
+// Check for saved theme preference or use system preference
+const savedTheme = localStorage.getItem('theme');
+const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+if (savedTheme === 'dark' || (!savedTheme && systemPrefersDark)) {
+    document.documentElement.classList.add('dark');
+}
+
+// Initialize the app after loading data
 async function init() {
-  try {
-    const { mergedPatterns, allTags: tags } = await loadAndMergePatterns();
-    patterns = mergedPatterns || [];
-    allTags = new Set(tags || []);
-    filteredPatterns = [...patterns];
+    // Initialize sidebar state
+    if (sidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        sidebarToggle.innerHTML = '<iconify-icon icon="lucide:panel-left-open" class="text-xl"></iconify-icon>';
+    } else {
+        sidebarToggle.innerHTML = '<iconify-icon icon="lucide:panel-left-close" class="text-xl"></iconify-icon>';
+    }
     
-    // Initialize view and theme
-    initView();
-    initTheme();
-    
-    loadPatterns(); // Call loadPatterns after patterns are loaded
-    
-    renderPatterns();
-    renderTagList();
+    await loadPromptsData();
+    extractAllTags();
+    renderTags();
     setupEventListeners();
-  } catch (error) {
-    console.error('Error initializing application:', error);
-    cardsContainer.innerHTML = `
-      <div class="error-message">
-        <p>Failed to load patterns. ${error.message}</p>
-        <button onclick="window.location.reload()" class="btn btn-primary">Retry</button>
-      </div>`;
-  }
+    loadPrompts();
 }
 
-// Extract all unique tags from patterns
+// Extract all unique tags from prompts
 function extractAllTags() {
-  patterns.forEach(pattern => {
-    if (Array.isArray(pattern.tags)) {
-      pattern.tags.forEach(tag => allTags.add(tag));
-    }
-  });
+    const tagsSet = new Set();
+    promptData.patterns.forEach(prompt => {
+        prompt.tags.forEach(tag => tagsSet.add(tag));
+    });
+    allTags = Array.from(tagsSet).sort();
 }
 
-// Render patterns based on current filters
-function renderPatterns() {
-  if (filteredPatterns.length === 0) {
-    cardsContainer.innerHTML = `
-      <div class="no-results">
-        <i class="fas fa-search"></i>
-        <p>No patterns found matching your criteria.</p>
-      </div>`;
-    return;
-  }
-
-  cardsContainer.className = `cards-container ${isGridView ? 'grid-view' : 'list-view'}`;
-  
-  cardsContainer.innerHTML = filteredPatterns.map((pattern, index) => `
-    <article class="card" data-pattern-name="${escapeHtml(pattern.id)}">
-      <div class="card-header">
-        <div class="card-title-row">
-          <h2 class="card-title">${escapeHtml(pattern.id)}</h2>
-          <div class="card-actions">
-            <button class="favorite-btn icon-button" data-favorite="${pattern.isFavorite}" aria-label="${pattern.isFavorite ? 'Remove from' : 'Add to'} favorites">
-              <i class="${pattern.isFavorite ? 'fas' : 'far'} fa-star"></i>
-            </button>
-            <button class="copy-btn icon-button" aria-label="Copy pattern">
-              <i class="far fa-copy"></i>
-            </button>
-          </div>
-        </div>
-        <div class="card-tags">
-          ${(pattern.tags || []).map(tag => `
-            <span class="tag" data-tag="${escapeHtml(tag)}">${escapeHtml(tag)}</span>
-          `).join('')}
-        </div>
-      </div>
-      <div class="card-content">
-        <div class="card-description">
-          <p>${escapeHtml(pattern.description || 'No description available.')}</p>
-        </div>
-      </div>
-      <div class="card-actions">
-        <button class="btn expand-btn" data-index="${index}" aria-expanded="false" aria-controls="pattern-${index}">
-          <i class="fas fa-chevron-down"></i>
-          <span>Show Pattern</span>
-        </button>
-      </div>
-      ${pattern.system ? `
-        <div id="pattern-${index}" class="card-pattern" style="display: none;">
-          <div class="pattern-header">
-            <button class="pattern-copy-btn" aria-label="Copy pattern">
-              <i class="far fa-copy"></i>
-              <span>Copy</span>
-            </button>
-          </div>
-          <div class="pattern-content">
-            <pre><code>${escapeHtml(pattern.system)}</code></pre>
-          </div>
-        </div>
-      ` : ''}
-    </article>`).join('');
-
-  // Handle expand/collapse of pattern content
-  document.querySelectorAll('.expand-btn').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const card = btn.closest('.card');
-      const patternContent = card.querySelector('.card-pattern');
-      const isExpanded = btn.getAttribute('aria-expanded') === 'true';
-      
-      // Toggle the expanded state
-      const newExpandedState = !isExpanded;
-      btn.setAttribute('aria-expanded', newExpandedState);
-      
-      // Toggle the content
-      if (patternContent) {
-        if (newExpandedState) {
-          patternContent.style.display = 'block';
-          patternContent.style.maxHeight = patternContent.scrollHeight + 'px';
-        } else {
-          patternContent.style.maxHeight = '0';
-          // Wait for the transition to complete before hiding
-          setTimeout(() => {
-            if (btn.getAttribute('aria-expanded') === 'false') {
-              patternContent.style.display = 'none';
-            }
-          }, 300);
-        }
-      }
-      
-      // Toggle the chevron icon
-      const icon = btn.querySelector('i');
-      if (icon) {
-        icon.style.transform = newExpandedState ? 'rotate(180deg)' : 'rotate(0deg)';
-      }
-      
-      // Update button text
-      const textSpan = btn.querySelector('span');
-      if (textSpan) {
-        textSpan.textContent = newExpandedState ? 'Hide Pattern' : 'Show Pattern';
-      }
+// Render tags in the filter dropdown
+function renderTags() {
+    tagsContainer.innerHTML = '';
+    allTags.forEach(tag => {
+        const isSelected = selectedTags.includes(tag);
+        const tagElement = document.createElement('div');
+        tagElement.className = `px-3 py-1 rounded-full text-sm flex items-center cursor-pointer ${isSelected ? 'bg-blue-100 dark:bg-blue-950/50 text-blue-800 dark:text-blue-200' : 'bg-gray-100 dark:bg-gray-800/50 hover:bg-gray-200 dark:hover:bg-gray-800'}`;
+        tagElement.innerHTML = `
+            <span>${tag}</span>
+            ${isSelected ? '<iconify-icon icon="tabler:check" class="ml-1"></iconify-icon>' : ''}
+        `;
+        tagElement.addEventListener('click', () => toggleTag(tag));
+        tagsContainer.appendChild(tagElement);
     });
-  });
-
-  // Handle copy button in pattern content
-  document.querySelectorAll('.pattern-copy-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const card = btn.closest('.card');
-      const patternContent = card?.querySelector('pre code')?.textContent;
-      
-      if (patternContent) {
-        try {
-          await copyToClipboard(patternContent);
-          
-          // Update button state
-          btn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
-          btn.classList.add('copied');
-          
-          // Reset button after delay
-          setTimeout(() => {
-            btn.innerHTML = '<i class="far fa-copy"></i><span>Copy</span>';
-            btn.classList.remove('copied');
-          }, 2000);
-          
-          showToast('Pattern copied to clipboard!');
-        } catch (err) {
-          console.error('Failed to copy pattern:', err);
-          showToast('Failed to copy pattern', 'error');
-        }
-      }
-    });
-  });
-
-  // Handle copy button in card header
-  document.querySelectorAll('.card-actions .copy-btn').forEach(btn => {
-    btn.addEventListener('click', async (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const card = btn.closest('.card');
-      const patternName = card?.dataset.patternName;
-      const pattern = patterns.find(p => p.id === patternName);
-      
-      if (pattern?.system) {
-        try {
-          await copyToClipboard(pattern.system);
-          
-          // Update button state
-          btn.innerHTML = '<i class="fas fa-check"></i>';
-          btn.classList.add('copied');
-          
-          // Reset button after delay
-          setTimeout(() => {
-            btn.innerHTML = '<i class="far fa-copy"></i>';
-            btn.classList.remove('copied');
-          }, 2000);
-          
-          showToast('Pattern copied to clipboard!');
-        } catch (err) {
-          console.error('Failed to copy pattern:', err);
-          showToast('Failed to copy pattern', 'error');
-        }
-      }
-    });
-  });
-
-  // Add event listeners to the new elements
-  document.querySelectorAll('.card .tag').forEach(tag => {
-    tag.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tagName = tag.dataset.tag;
-      if (tagName) {
-        toggleTag(tagName);
-      }
-    });
-  });
 }
 
-// Render the tag list in the popup
-function renderTagList(filter = '') {
-  const filteredTags = Array.from(allTags).filter(tag => 
-    tag.toLowerCase().includes(filter.toLowerCase())
-  );
-
-  popupTagList.innerHTML = filteredTags.map(tag => `
-    <li 
-      class="tag-item ${selectedTags.has(tag) ? 'selected' : ''}" 
-      data-tag="${escapeHtml(tag)}"
-      role="option"
-      aria-selected="${selectedTags.has(tag)}"
-    >
-      <span class="tag-text">${escapeHtml(tag)}</span>
-    </li>
-  `).join('');
-
-  // Add event listeners to tag items
-  document.querySelectorAll('.tag-item').forEach(item => {
-    item.addEventListener('click', () => {
-      const tag = item.dataset.tag;
-      toggleTag(tag);
-    });
-  });
-}
-
-// Toggle a tag in the selected tags
+// Toggle tag selection
 function toggleTag(tag) {
-  if (selectedTags.has(tag)) {
-    selectedTags.delete(tag);
-  } else {
-    selectedTags.add(tag);
-  }
-  renderSelectedTags();
-  filterPatterns();
-  renderTagList(popupTagSearch.value);
-}
-
-// Render the selected tags
-function renderSelectedTags() {
-  const noTagsMessage = '<span class="no-tags" style="display: ' + (selectedTags.size === 0 ? 'block' : 'none') + ';">No filters selected</span>';
-  const tagsHtml = selectedTags.size > 0 ? Array.from(selectedTags).map(tag => `
-    <span class="selected-tag">
-      ${escapeHtml(tag)}
-      <button class="remove-tag" data-tag="${escapeHtml(tag)}" aria-label="Remove tag">
-        <i class="fas fa-times"></i>
-      </button>
-    </span>
-  `).join('') : '';
-  
-  selectedTagsContainer.innerHTML = noTagsMessage + tagsHtml;
-  
-  // Add event listeners to remove buttons
-  document.querySelectorAll('.remove-tag').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const tag = btn.dataset.tag;
-      selectedTags.delete(tag);
-      renderSelectedTags();
-      filterPatterns();
-      renderTagList(popupTagSearch.value);
-    });
-  });
-}
-
-// Filter patterns based on search and selected tags
-function filterPatterns() {
-  const searchTerm = searchInput.value.toLowerCase();
-  
-  filteredPatterns = patterns.filter(pattern => {
-    // Filter by search term
-    const matchesSearch = pattern.patternName.toLowerCase().includes(searchTerm) ||
-                         pattern.description.toLowerCase().includes(searchTerm) ||
-                         (pattern.tags || []).some(tag => tag.toLowerCase().includes(searchTerm));
-    
-    // Filter by selected tags
-    const matchesTags = selectedTags.size === 0 || 
-                       (pattern.tags && Array.isArray(pattern.tags) && 
-                        Array.from(selectedTags).every(tag => pattern.tags.includes(tag)));
-    
-    return matchesSearch && matchesTags;
-  });
-
-  renderPatterns();
-}
-
-// Toggle view between grid and list
-function toggleView(viewType) {
-  isGridView = viewType === 'grid';
-  
-  // Update the view toggle buttons
-  const gridOption = document.querySelector('.grid-view-option');
-  const listOption = document.querySelector('.list-view-option');
-  
-  // Update ARIA attributes
-  gridOption.setAttribute('aria-pressed', isGridView);
-  listOption.setAttribute('aria-pressed', !isGridView);
-  
-  // Update active class
-  if (isGridView) {
-    gridOption.classList.add('active');
-    listOption.classList.remove('active');
-  } else {
-    gridOption.classList.remove('active');
-    listOption.classList.add('active');
-  }
-  
-  // Update the cards container class
-  cardsContainer.className = `cards-container ${isGridView ? 'grid-view' : 'list-view'}`;
-  
-  // Save preference
-  localStorage.setItem('viewPreference', isGridView ? 'grid' : 'list');
-}
-
-// Initialize the view based on saved preference or default to grid
-function initView() {
-  const savedView = localStorage.getItem('viewPreference') || 'grid';
-  toggleView(savedView);
-}
-
-// Initialize theme based on user preference or system preference
-function initTheme() {
-  // Theme is already set by the inline script in the head
-  // Just update the toggle button state
-  updateThemeToggle();
-  
-  // Listen for system theme changes
-  const darkModeMediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-  darkModeMediaQuery.addEventListener('change', (e) => {
-    // Only update if user hasn't set a preference
-    if (!localStorage.getItem('theme')) {
-      const isDark = e.matches;
-      document.documentElement.classList.toggle('dark-theme', isDark);
-      updateThemeToggle();
+    if (selectedTags.includes(tag)) {
+        selectedTags = selectedTags.filter(t => t !== tag);
+    } else {
+        selectedTags.push(tag);
     }
-  });
+    renderTags();
+    loadPrompts();
 }
 
-// Toggle theme between light and dark
-function toggleTheme() {
-  const isDark = document.documentElement.classList.toggle('dark-theme');
-  
-  // Save user preference
-  if (isDark) {
-    localStorage.setItem('theme', 'dark');
-  } else {
-    localStorage.setItem('theme', 'light');
-  }
-  
-  updateThemeToggle();
+// Load and display prompts based on filters
+function loadPrompts() {
+    const searchTerm = searchInput.value.toLowerCase();
+    
+    let filteredPrompts = promptData.patterns.filter(prompt => {
+        // Filter by search term
+        const matchesSearch = prompt.id.toLowerCase().includes(searchTerm) || 
+                            prompt.description.toLowerCase().includes(searchTerm) ||
+                            prompt.tags.some(tag => tag.toLowerCase().includes(searchTerm));
+        
+        // Filter by selected tags
+        const matchesTags = selectedTags.length === 0 || 
+                          selectedTags.every(tag => prompt.tags.includes(tag));
+        
+        return matchesSearch && matchesTags;
+    });
+
+    // Apply tab filter
+    if (currentTab === 'favorites') {
+        filteredPrompts = filteredPrompts.filter(prompt => favorites.includes(prompt.id));
+    }
+
+    renderPrompts(filteredPrompts);
 }
 
-// Update the theme toggle button state
-function updateThemeToggle() {
-  const isDark = document.documentElement.classList.contains('dark-theme');
-  const themeIcon = themeToggleBtn.querySelector('i');
-  
-  if (isDark) {
-    themeIcon.className = 'fas fa-sun';
-    themeToggleBtn.setAttribute('aria-label', 'Switch to light mode');
-  } else {
-    themeIcon.className = 'fas fa-moon';
-    themeToggleBtn.setAttribute('aria-label', 'Switch to dark mode');
-  }
+// Render prompts in the current view
+function renderPrompts(prompts) {
+    promptsContainer.innerHTML = '';
+    
+    if (prompts.length === 0) {
+        promptsContainer.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <iconify-icon icon="tabler:inbox-off" class="text-4xl text-gray-400 mb-4"></iconify-icon>
+                <p class="text-gray-500 dark:text-gray-400">No prompts found. Try adjusting your filters.</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Update grid classes based on current view
+    promptsContainer.className = `grid gap-6 ${currentView === 'grid' ? 'grid-cols-1 md:grid-cols-1 lg:grid-cols-1' : 'grid-cols-2'}`;
+    
+    prompts.forEach(prompt => {
+        const isFavorite = favorites.includes(prompt.id)
+        
+        const promptElement = document.createElement('div');
+        promptElement.className = `prompt-card bg-white dark:bg-gray-900/20 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col ${currentView === 'grid' ? 'h-40' : ''}`;
+        
+        promptElement.innerHTML = `
+            <div class="p-5 flex-1">
+                <div class="flex justify-between items-start mb-3">
+                    <h3 class="font-semibold text-lg">${prompt.id}</h3>
+                    <div class="flex space-x-2">
+                        <button
+                            class="favorite-btn flex justify-center items-center text-xl p-2 h-8 w-8 rounded-lg hover:bg-red-100 dark:hover:bg-red-950/50 ${isFavorite ? 'text-red-500' : 'text-gray-400 dark:text-gray-500 dark:hover:text-red-400 hover:text-red-400'}"
+                            title="${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}">
+                            <iconify-icon icon="${isFavorite ? 'tabler:heart-filled' : 'tabler:heart'}" class="w-5 h-5 inline-block"></iconify-icon>
+                        </button>
+                        <button
+                            class="copy-prompt-btn flex justify-center items-center text-xl text-gray-400 p-2 h-8 w-8 rounded-lg hover:text-blue-500 dark:hover:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-950/50"
+                            title="Copy Prompt">
+                            <iconify-icon icon="tabler:copy" class="w-5 h-5 inline-block"></iconify-icon>
+                        </button>
+                    </div>
+
+                </div>
+                <div class="flex flex-wrap gap-2 mb-4">
+                    ${prompt.tags.map(tag => `
+                        <span class="px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded-full text-xs">${tag}</span>
+                    `).join('')}
+                </div>
+                <p class="text-gray-600 dark:text-gray-300 text-sm mb-4 ${currentView === 'grid' ? 'truncate' : ''}">${prompt.description}</p>
+            </div>
+            <div class="px-5 pb-5">
+                <button class="view-prompt-btn w-full bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg py-2 text-sm font-medium">
+                    Show Prompt
+                </button>
+            </div>
+        `;
+        
+        promptsContainer.appendChild(promptElement);
+        
+        // Add event listeners to the buttons
+        promptElement.querySelector('.favorite-btn').addEventListener('click', () => toggleFavorite(prompt.id));
+        promptElement.querySelector('.view-prompt-btn').addEventListener('click', () => showPromptDetail(prompt.id));
+        promptElement.querySelector('.copy-prompt-btn').addEventListener('click', () => copyToClipboard(prompt.system));
+    });
 }
 
-// Helper function to escape HTML
-function escapeHtml(unsafe) {
-  if (typeof unsafe !== 'string') return '';
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+// Toggle favorite status
+function toggleFavorite(promptId) {
+    if (favorites.includes(promptId)) {
+        favorites = favorites.filter(id => id !== promptId);
+    } else {
+        favorites.push(promptId);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('favorites', JSON.stringify(favorites));
+    
+    // Reload prompts to update UI
+    loadPrompts();
+    
+    // If modal is open for this prompt, update the favorite button
+    if (currentPromptId === promptId) {
+        const isFavorite = favorites.includes(promptId);
+        modalFavorite.innerHTML = `
+            <iconify-icon icon="${isFavorite ? 'tabler:heart-filled' : 'tabler:heart'}" class="text-xl ${isFavorite ? 'text-red-500' : ''}"></iconify-icon>
+            <span>${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}</span>
+        `;
+    }
+}
+
+// Show prompt detail in modal
+function showPromptDetail(promptId) {
+    const prompt = promptData.patterns.find(p => p.id === promptId);
+    if (!prompt) return;
+    
+    currentPromptId = promptId;
+    const isFavorite = favorites.includes(promptId);
+    
+    modalTitle.textContent = prompt.id;
+    modalDescription.textContent = prompt.description;
+    modalPrompt.textContent = prompt.system;
+    
+    // Render tags
+    modalTags.innerHTML = '';
+    prompt.tags.forEach(tag => {
+        const tagElement = document.createElement('span');
+        tagElement.className = 'px-2 py-1 bg-gray-100 dark:bg-gray-800/50  rounded-full text-xs';
+        tagElement.textContent = tag;
+        modalTags.appendChild(tagElement);
+    });
+    
+    // Update favorite button
+    modalFavorite.innerHTML = `
+        <iconify-icon icon="${isFavorite ? 'tabler:heart-filled' : 'tabler:heart'}" class="text-xl ${isFavorite ? 'text-red-500' : ''}"></iconify-icon>
+        <span>${isFavorite ? 'Remove from Favorites' : 'Add to Favorites'}</span>
+    `;
+    
+    // Show modal
+    promptModal.classList.remove('hidden');
 }
 
 // Copy text to clipboard
-async function copyToClipboard(text) {
-  try {
-    await navigator.clipboard.writeText(text);
-    return true;
-  } catch (err) {
-    console.error('Failed to copy text: ', err);
-    return false;
-  }
-}
-
-// Show toast notification
-function showToast(message, type = 'success') {
-  const toast = document.createElement('div');
-  toast.className = `toast ${type === 'error' ? 'toast-error' : ''}`;
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  
-  // Trigger reflow
-  toast.offsetHeight;
-  
-  // Add show class
-  toast.classList.add('show');
-  
-  // Remove toast after animation
-  setTimeout(() => {
-    toast.classList.remove('show');
-    setTimeout(() => {
-      document.body.removeChild(toast);
-    }, 300);
-  }, 3000);
-}
-
-// Load patterns from localStorage
-function loadPatterns() {
-  const savedPatterns = localStorage.getItem('favoritePatterns');
-  if (savedPatterns) {
-    try {
-      const favoriteStates = JSON.parse(savedPatterns);
-      patterns.forEach(pattern => {
-        if (favoriteStates[pattern.id] !== undefined) {
-          pattern.isFavorite = favoriteStates[pattern.id];
-        }
-      });
-    } catch (e) {
-      console.error('Failed to load favorite patterns:', e);
-    }
-  }
-  renderPatterns();
-}
-
-// Save favorite states to localStorage
-function savePatterns() {
-  try {
-    const favoriteStates = {};
-    patterns.forEach(pattern => {
-      favoriteStates[pattern.id] = pattern.isFavorite || false;
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        // Show notification
+        copyNotification.classList.add('show');
+        setTimeout(() => {
+            copyNotification.classList.remove('show');
+        }, 2000);
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
     });
-    localStorage.setItem('favoritePatterns', JSON.stringify(favoriteStates));
-  } catch (e) {
-    console.error('Failed to save favorite patterns:', e);
-  }
 }
 
-
-// Set up event listeners
-function setupEventListeners() {
-  // Search input
-  searchInput.addEventListener('input', debounce(filterPatterns, 300));
-  
-  // Theme toggle
-  themeToggleBtn.addEventListener('click', toggleTheme);
-  
-  // View toggle buttons
-  document.querySelectorAll('.view-option').forEach(option => {
-    option.addEventListener('click', (e) => {
-      const viewType = e.currentTarget.dataset.view;
-      toggleView(viewType);
-    });
-  });
-  
-  // Tag filter button
-  tagFilterBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    tagSearchPopup.classList.toggle('hidden');
-    tagFilterBtn.setAttribute('aria-expanded', 
-      tagFilterBtn.getAttribute('aria-expanded') === 'true' ? 'false' : 'true'
-    );
+// Toggle sidebar collapse
+function toggleSidebar() {
+    sidebarCollapsed = !sidebarCollapsed;
+    localStorage.setItem('sidebarCollapsed', sidebarCollapsed);
     
-    if (!tagSearchPopup.classList.contains('hidden')) {
-      popupTagSearch.focus();
+    if (sidebarCollapsed) {
+        sidebar.classList.add('collapsed');
+        sidebarToggle.innerHTML = '<iconify-icon icon="lucide:panel-left-open" class="text-xl"></iconify-icon>';
+    } else {
+        sidebar.classList.remove('collapsed');
+        sidebarToggle.innerHTML = '<iconify-icon icon="lucide:panel-left-close" class="text-xl"></iconify-icon>';
     }
-  });
-  
-  // Tag search in popup
-  popupTagSearch.addEventListener('input', (e) => {
-    renderTagList(e.target.value);
-  });
-  
-  // Close popup when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!tagSearchPopup.contains(e.target) && e.target !== tagFilterBtn) {
-      tagSearchPopup.classList.add('hidden');
-      tagFilterBtn.setAttribute('aria-expanded', 'false');
-    }
-  });
-  
-  // Prevent popup from closing when clicking inside it
-  tagSearchPopup.addEventListener('click', (e) => {
-    e.stopPropagation();
-  });
-  
-  // Keyboard navigation for accessibility
-  popupTagSearch.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      tagSearchPopup.classList.add('hidden');
-      tagFilterBtn.setAttribute('aria-expanded', 'false');
-      tagFilterBtn.focus();
-    }
-  });
+}
 
-  // Favorite button
-  document.addEventListener('click', (e) => {
-    const favoriteBtn = e.target.closest('.favorite-btn');
-    if (favoriteBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      
-      const card = favoriteBtn.closest('.card');
-      if (card) {
-        const patternName = card.dataset.patternName;
-        if (patternName) {
-          const pattern = patterns.find(p => p.patternName === patternName);
-          if (pattern) {
-            pattern.isFavorite = !pattern.isFavorite;
-            favoriteBtn.setAttribute('data-favorite', pattern.isFavorite);
-            favoriteBtn.setAttribute('aria-label', pattern.isFavorite ? 'Remove from favorites' : 'Add to favorites');
-            const icon = favoriteBtn.querySelector('i');
-            if (icon) {
-              icon.className = pattern.isFavorite ? 'fas fa-star' : 'far fa-star';
-            }
-            savePatterns();
-          }
+// Setup event listeners
+function setupEventListeners() {
+    // Theme toggle
+    themeToggle.addEventListener('click', () => {
+        const isDark = document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    });
+    
+    // Sidebar toggle
+    sidebarToggle.addEventListener('click', toggleSidebar);
+    
+    // Filter dropdown toggle
+    filterToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const wasHidden = filterDropdown.classList.toggle('hidden');
+        if (!wasHidden) {
+            // Focus the tag search input after a small delay to ensure the dropdown is visible
+            setTimeout(() => tagSearch.focus(), 10);
         }
-      }
-      return;
-    }
-  });
+    });
+    
+    // Close filter dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!filterToggle.contains(e.target) && !filterDropdown.contains(e.target)) {
+            filterDropdown.classList.add('hidden');
+        }
+    });
+    
+    // Tag search
+    tagSearch.addEventListener('input', () => {
+        const searchTerm = tagSearch.value.toLowerCase();
+        const tagElements = tagsContainer.querySelectorAll('div');
+        
+        tagElements.forEach(tagElement => {
+            const tagText = tagElement.querySelector('span').textContent.toLowerCase();
+            if (tagText.includes(searchTerm)) {
+                tagElement.style.display = 'flex';
+            } else {
+                tagElement.style.display = 'none';
+            }
+        });
+    });
+    
+    // Search input
+    searchInput.addEventListener('input', loadPrompts);
+    
+    // View toggle
+    cardViewBtn.addEventListener('click', () => {
+        if (currentView !== 'card') {
+            currentView = 'card';
+            cardViewBtn.classList.add('bg-blue-100', 'dark:bg-blue-950/50', 'text-blue-500');
+            gridViewBtn.classList.remove('bg-blue-100', 'dark:bg-blue-950/50', 'text-blue-500');
+            loadPrompts();
+        }
+    });
+    
+    gridViewBtn.addEventListener('click', () => {
+        if (currentView !== 'grid') {
+            currentView = 'grid';
+            gridViewBtn.classList.add('bg-blue-100', 'dark:bg-blue-950/50', 'text-blue-500');
+            cardViewBtn.classList.remove('bg-blue-100', 'dark:bg-blue-950/50', 'text-blue-500');
+            loadPrompts();
+        }
+    });
+    
+    // Modal events
+    closeModal.addEventListener('click', () => {
+        promptModal.classList.add('hidden');
+    });
+    
+    modalFavorite.addEventListener('click', () => {
+        if (currentPromptId) {
+            toggleFavorite(currentPromptId);
+        }
+    });
+    
+    modalCopy.addEventListener('click', () => {
+        if (currentPromptId) {
+            const prompt = promptData.patterns.find(p => p.id === currentPromptId);
+            if (prompt) {
+                copyToClipboard(prompt.system);
+            }
+        }
+    });
+    
+    // Close modal when clicking outside
+    promptModal.addEventListener('click', (e) => {
+        if (e.target === promptModal) {
+            promptModal.classList.add('hidden');
+        }
+    });
+    
+    // Tab navigation
+    tabLinks.forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
+            const tabName = tab.getAttribute('data-tab');
+            
+            // Update active tab
+            tabLinks.forEach(t => t.classList.remove('text-blue-600', 'dark:text-blue-400', 'bg-blue-400/50', 'dark:bg-blue-950/50'));
+            tab.classList.add('text-blue-600', 'dark:text-blue-400', 'bg-blue-400/50', 'dark:bg-blue-950/50');
+            
+            // Update current tab and reload prompts
+            currentTab = tabName;
+            loadPrompts();
+        });
+    });
 }
 
-// Debounce function to limit the rate of function calls
-function debounce(func, wait) {
-  let timeout;
-  return function executedFunction(...args) {
-    const later = () => {
-      clearTimeout(timeout);
-      func(...args);
-    };
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-  };
-}
-
-// Initialize the application when the DOM is fully loaded
+// Initialize the app when the DOM is loaded
 document.addEventListener('DOMContentLoaded', init);

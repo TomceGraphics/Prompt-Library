@@ -1,0 +1,26 @@
+/* Expanded by default */
+.sidebar {
+  width: 256px;
+}
+
+/* Collapsed state */
+.sidebar.collapsed {
+  width: 64px; /* smaller width for smooth animation */
+}
+
+/* Hide texts when collapsed */
+.sidebar.collapsed .sidebar-text,
+.sidebar.collapsed .logo-text {
+  display: none;
+}
+
+/* When collapsed → icons centered */
+.sidebar.collapsed .tab-link {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.collapsed .tab-link iconify-icon {
+  margin-right: 0;
+}
