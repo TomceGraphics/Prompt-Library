@@ -1,26 +1,199 @@
-/* Expanded by default */
+/* Base sidebar styles */
 .sidebar {
-  width: 256px;
+  width: 16rem; /* w-64 = 256px */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Collapsed state */
 .sidebar.collapsed {
-  width: 64px; /* smaller width for smooth animation */
+  width: 4rem; /* w-16 = 64px */
 }
 
-/* Hide texts when collapsed */
-.sidebar.collapsed .sidebar-text,
-.sidebar.collapsed .logo-text {
+/* Text animations */
+.sidebar-text {
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity 0.2s ease-in-out, width 0.2s ease-in-out;
+  opacity: 1;
+  width: auto;
+  margin-left: 0.75rem;
+  display: inline-block;
+}
+
+.sidebar.collapsed .sidebar-text {
+  opacity: 0;
+  width: 0;
+  margin-left: 0;
   display: none;
 }
 
-/* When collapsed → icons centered */
-.sidebar.collapsed .tab-link {
-  justify-content: center;
-  padding-left: 0;
-  padding-right: 0;
+.logo-text {
+  transition: opacity 0.2s ease-in-out;
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline-block;
 }
 
-.sidebar.collapsed .tab-link iconify-icon {
-  margin-right: 0;
+.sidebar.collapsed .logo-text {
+  opacity: 0;
+  width: 0;
+  display: none;
+}
+
+/* Tab link styles */
+.tab-link {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  margin: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease-in-out;
+  height: 2.5rem;
+  width: auto;
+  color: #4b5563; /* text-gray-600 */
+}
+
+.dark .tab-link {
+  color: #9ca3af; /* dark:text-gray-400 */
+}
+
+/* Icon styles */
+.tab-link iconify-icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+  transition: transform 0.2s ease-in-out;
+  min-width: 1.5rem;
+  text-align: center;
+}
+
+/* Ensure proper spacing for collapsed state */
+.sidebar.collapsed .tab-link {
+  justify-content: center;
+  padding: 0.5rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0.25rem auto;
+}
+
+/* Hover state for tab links */
+.tab-link:hover {
+  background-color: #f3f4f6; /* bg-gray-100 */
+  color: #2563eb; /* text-blue-600 */
+}
+
+.dark .tab-link:hover {
+  background-color: #374151; /* dark:bg-gray-700 */
+  color: #60a5fa; /* dark:text-blue-400 */
+}
+
+/* Active tab styles */
+.tab-link.active {
+  background-color: #dbeafe; /* bg-blue-100 */
+  color: #2563eb; /* text-blue-600 */
+  font-weight: 500;
+}
+
+.dark .tab-link.active {
+  background-color: rgba(30, 58, 138, 0.5); /* dark:bg-blue-950/50 */
+  color: #60a5fa; /* dark:text-blue-400 */
+}
+
+/* Navigation area */
+.sidebar nav {
+  flex: 1;
+  padding: 0.5rem;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar */
+.sidebar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 4px;
+}
+
+.dark .sidebar::-webkit-scrollbar-thumb {
+  background-color: rgba(75, 85, 99, 0.5);
+}
+
+/* Theme toggle button */
+#theme-toggle {
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.15s ease-in-out;
+}
+
+/* Hover effects */
+#sidebar-toggle:hover {
+  transform: scale(1.05);
+}
+
+#sidebar-toggle:active {
+  transform: scale(0.95);
+}
+
+/* Focus styles for accessibility */
+.tab-link:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+button:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Remove default focus styles */
+.tab-link:focus:not(:focus-visible) {
+  outline: none;
+}
+
+button:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Tooltip for collapsed state */
+.sidebar.collapsed .tab-link:hover::after {
+  content: attr(title);
+  position: absolute;
+  left: calc(100% + 0.5rem);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgb(17 24 39);
+  color: white;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  white-space: nowrap;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.dark .sidebar.collapsed .tab-link:hover::after {
+  background: rgb(55 65 81);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    z-index: 40;
+    transform: translateX(0);
+  }
+  
+  .sidebar.collapsed {
+    transform: translateX(-100%);
+    width: 16rem;
+  }
 }
