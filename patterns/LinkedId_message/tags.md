@@ -1,10 +1,4 @@
 Career
 Networking
-Recruitment
-Messaging
-AI
 Communication
-Professional
-Talent
-Growth
-Opportunity
+job recruitment
