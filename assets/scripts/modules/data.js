@@ -25,4 +25,22 @@ export function getAllTags() {
     return state.allTags;
 }
 
-
+export const navigation = {
+    tabs: [
+        {
+            id: 'home',
+            label: 'Home',
+            icon: 'mynaui:home'
+        },
+        {
+            id: 'explore',
+            label: 'Explore',
+            icon: 'mynaui:compass'
+        },
+        {
+            id: 'favorites',
+            label: 'Favorites',
+            icon: 'mynaui:heart'
+        }
+    ]
+};
