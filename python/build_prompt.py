@@ -2,8 +2,8 @@ import os
 import json
 
 # Paths
-PATTERNS_DIR = "patterns"
-OUTPUT_FILE = "prompts.json"
+PATTERNS_DIR = "../patterns"
+OUTPUT_FILE = "../prompts.json"
 
 def read_file(path):
     """Read file content if exists, else return empty string."""
@@ -24,9 +24,9 @@ def build_prompts():
         system = read_file(os.path.join(folder_path, "system.md"))
         description = read_file(os.path.join(folder_path, "description.md"))
 
-        # Tags: split by commas or newlines, strip whitespace
+        # Tags: split by commas or newlines, strip whitespace, and convert to lowercase
         tags_raw = read_file(os.path.join(folder_path, "tags.md"))
-        tags = [t.strip() for t in tags_raw.replace(",", "\n").split("\n") if t.strip()]
+        tags = [t.strip().lower() for t in tags_raw.replace(",", "\n").split("\n") if t.strip()]
 
         pattern = {
             "id": folder,

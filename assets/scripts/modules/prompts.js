@@ -105,6 +105,11 @@ function renderPrompts(prompts) {
                             title="Copy Prompt">
                             <iconify-icon icon="tabler:copy" class="w-5 h-5 inline-block"></iconify-icon>
                         </button>
+                        <button
+                            class="chatgpt-btn flex justify-center items-center text-xl text-gray-400 p-2 h-8 w-8 rounded-lg hover:text-green-500 dark:hover:text-green-500 hover:bg-green-100 dark:hover:bg-green-950/50"
+                            title="Use Prompt">
+                            <iconify-icon icon="tabler:external-link" class="w-5 h-5 inline-block"></iconify-icon>
+                        </button>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2 mb-4">
@@ -125,6 +130,10 @@ function renderPrompts(prompts) {
         card.querySelector('.favorite-btn')?.addEventListener('click', () => toggleFavorite(prompt.id));
         card.querySelector('.view-prompt-btn')?.addEventListener('click', () => showPromptDetail(prompt.id));
         card.querySelector('.copy-prompt-btn')?.addEventListener('click', () => copyToClipboard(prompt.system));
+        card.querySelector('.chatgpt-btn')?.addEventListener('click', () => {
+            const encodedPrompt = encodeURIComponent(prompt.system);
+            window.open(`https://chatgpt.com/?prompt=${encodedPrompt}`, '_blank');
+        });
     });
 }
 
@@ -219,5 +228,3 @@ function setupEventListeners() {
         copyToClipboard(text);
     });
 }
-
-
